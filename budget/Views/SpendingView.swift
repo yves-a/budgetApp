@@ -123,10 +123,7 @@ struct SpendingView: View {
             appState.transactions.remove(at: index)
         }
     }
-    
-    private func showAllDeleteOffsets() {
-        
-    }
+
     
     private func deleteOffsets(at offsets: IndexSet) {
         appState.transactions.remove(atOffsets: offsets)
