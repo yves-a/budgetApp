@@ -248,6 +248,7 @@ struct PlanView: View {
             }
             .padding()
             .navigationTitle("Plan")
+            .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 let maxIncome = appState.settings.monthlyIncome
                 let initial = min(totalMinimumPayments, maxIncome)

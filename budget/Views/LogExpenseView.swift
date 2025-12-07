@@ -11,12 +11,32 @@ import SwiftUI
 struct LogExpenseView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) private var dismiss
+    
+    let expenseToEdit: Transaction?
 
     // Form fields
     @State private var date = Date()
     @State private var amountText: String = ""
     @State private var category: String = ""
     @State private var description: String = ""
+    
+    init(expenseToEdit: Transaction? = nil) {
+            self.expenseToEdit = expenseToEdit
+
+            if let e = expenseToEdit {
+                // EDIT MODE: prefill from existing transaction
+                _date = State(initialValue: e.date)
+                _amountText = State(initialValue: String(e.amount))
+                _category = State(initialValue: e.category)
+                _description = State(initialValue: e.description ?? "")
+            } else {
+                // ADD MODE: empty form
+                _date = State(initialValue: Date())
+                _amountText = State(initialValue: "")
+                _category = State(initialValue: "")
+                _description = State(initialValue: "")
+            }
+        }
 
     // Simple validation
     private var isFormValid: Bool {
@@ -66,13 +86,14 @@ struct LogExpenseView: View {
                 }
 
                 Section {
-                    Button(action: logExpense) {                        Text("Log Expense")
+                    Button(action: saveExpense) {
+                        Text(expenseToEdit == nil ? "Log Expense" : "Save Changes")
                             .frame(maxWidth: .infinity)
                     }
                     .disabled(!isFormValid)
                 }
             }
-            .navigationTitle("Log Expense")
+            .navigationTitle(expenseToEdit == nil ? "Log Expense" : "Edit Expense")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -80,22 +101,38 @@ struct LogExpenseView: View {
                     }
                 }
             }
+            .onAppear {
+                if let e = expenseToEdit {
+                    date = e.date
+                    amountText = String(e.amount)
+                    category = e.category
+                    description = e.description ?? ""
+                }
+            }
+
         }
     }
 
-    private func logExpense() {
-        guard
-            let amountValue = Double(amountText)
-        else {
-            return
-        }
+    private func saveExpense() {
+        guard let amountValue = Double(amountText) else { return }
 
-        appState.logExpense(
-            date: date,
-            amount: amountValue,
-            category: category,
-            description: description
-        )
+        if let existing = expenseToEdit {
+            // EDIT MODE
+            if let index = appState.transactions.firstIndex(where: { $0.id == existing.id }) {
+                appState.transactions[index].date = date
+                appState.transactions[index].amount = amountValue
+                appState.transactions[index].category = category
+                appState.transactions[index].description = description
+            }
+        } else {
+            // ADD MODE
+            appState.logExpense(
+                date: date,
+                amount: amountValue,
+                category: category,
+                description: description
+            )
+        }
 
         dismiss()
     }

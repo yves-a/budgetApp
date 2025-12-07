@@ -94,6 +94,7 @@ struct HomeView: View {
                 .padding()
             }
             .navigationTitle("Home")
+            .navigationBarTitleDisplayMode(.inline)
         }
         .sheet(isPresented: $showingAddDebtSheet) {
             AddDebtView()
